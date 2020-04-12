@@ -73,7 +73,7 @@ class model(object):
         self.__img_size = 32
         self.__batch_size = 1
         self.__workers = 2
-        self.__train_data_name = os.listdir(self.__dataroot+'/IMG')
+        self.__train_data_name = sorted(os.listdir(self.__dataroot+'/IMG'))
         self.__train_data = dset.ImageFolder(root = self.__dataroot,
                                              transform = transforms.Compose([
                                                  transforms.Resize(self.__img_size),

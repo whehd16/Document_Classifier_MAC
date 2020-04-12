@@ -12,7 +12,7 @@ class PDFtoIMG(object):
         self.__PDF_path = pdf_path
         self.__IMG_path = img_path
         self.__RePDF_path = './RePDF/'
-        self.__Poppler_path = './Utils/Poppler/bin/'
+        self.__Poppler_path = '/Users/donghee/Library/Homebrew/bin'
         self.__pageDict = {}
         self.__originName = {}
         self.__stepListener = stepListner

@@ -7,7 +7,10 @@ import image_processing3
 from stepListener import interfaceStepListener as stepListener
 import time
 
-pytesseract.pytesseract.tesseract_cmd = r'Utils\Tesseract-OCR\tesseract'
+#pytesseract.pytesseract.tesseract_cmd = r'Utils\Tesseract-OCR\tesseract'
+#pytesseract.pytesseract.tesseract_cmd = '/Users/donghee/Library/Anaconda/bin/pytesseract'
+#pytesseract.pytesseract.tesseract_cmd = r'/Users/donghee/Library/Anaconda/lib/python3.7/site-packages/tesseract'
+pytesseract.pytesseract.tesseract_cmd = r'/Users/donghee/Library/Homebrew/bin/tesseract'
 
 
 class CoverCheck(object):

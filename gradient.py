@@ -10,6 +10,7 @@ class mod_gradient(object):
         self.__stepListener = stepListener
 
     def pregradient(self, img):
+        print(img)
         temp = cv2.imread(self.__IMG_path+img)
 
         gray = cv2.cvtColor(temp, cv2.COLOR_BGR2GRAY)
