@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 import math
 import time
 import sys
@@ -37,12 +38,16 @@ class InitWindow(QDialog, stepListener):
         self.btnNoCover.clicked.connect(self.noCoverList)
         self.btnToContent.clicked.connect(self.toContentList)
         self.btnComplete.stackUnder(self.btnToContent)
+        self.btnKeyword.stackUnder(self.btnDisable)
         self.btnYes.clicked.connect(self.keyword)
         self.btnNo.clicked.connect(self.endProgram)
         self.btnFinish.clicked.connect(qApp.quit)
         self.btnKeyword.clicked.connect(self.sendKeyword)
         # GoTo ShowCover
         self.progressBar.valueChanged.connect(self.callShowCover)
+        self.pbOCR.valueChanged.connect(self.callShowOCRprogress)
+        #lineedit
+        self.leKeyword.textChanged.connect(self.keywordChanged)
         self.__i = 0
         self.__DC = Document_Classifying.Classifying()
         self.__End = object
@@ -68,6 +73,7 @@ class InitWindow(QDialog, stepListener):
         self.__currentFile = 0
         # self.__detail_list = {}
         self.__detailResult = None
+        self.__checkdisConnect = False
         self.lwList.verticalScrollBar().setStyleSheet("QScrollBar:vertical {border: 0px solid #999999; background: "
                                                       "rgba(0, 0, 0, 1); width: 20px; margin: 0px 0px 0px 0px;}"
                                                       "QScrollBar::handle:vertical {"
@@ -78,6 +84,8 @@ class InitWindow(QDialog, stepListener):
                                                       "}")
         self.progressBar.setStyleSheet("QProgressBar {border: 0px; color: rgb(255, 255, 255);}"
                                        "QProgressBar::chunk {background-color: rgb(255, 163, 139);}")
+        self.pbOCR.setStyleSheet("QProgressBar {border: 0px; color: rgb(255, 255, 255);}"
+                                       "QProgressBar::chunk {background-color: rgb(255, 163, 139);}")
 
     def callShowCover(self):
         if self.__i == 1:
@@ -87,7 +95,20 @@ class InitWindow(QDialog, stepListener):
         if self.progressBar.value() == 3:
             self.stackedWidget.setCurrentIndex(2)
             self.progressBar.setValue(0)
-    #         total 6 levels
+            self.__i = 0
+            self.progressBar.valueChanged.disconnect(self.callShowCover)
+
+    def callShowOCRprogress(self):
+        if self.__i == 1:
+            self.lblOCR.setText("이미지 개선 중")
+        elif self.__i == 2:
+            self.lblOCR.setText("문자열 검사 중")
+        elif self.__i == 3:
+            self.lblOCR.setText("문서 저장 중")
+        if self.progressBar.value() == 4:
+            self.lblOCR.setText("완료")
+
+
 
     def startprg(self):
         # GoTo ProgressBar
@@ -218,6 +239,13 @@ class InitWindow(QDialog, stepListener):
         self.progressBar.setValue(self.__i)
         QApplication.processEvents()
 
+    def upStepOCR(self):
+        # progress바 조작하는 곳
+        self.__i += self.__Ocr.Step
+        self.pbOCR.setValue(self.__i)
+        QApplication.processEvents()
+
+
     def ping(self):
         self.__currentPDF = self.__currentPDF + 1
         self.lblProgress.setText('PDF -> IMG 변환 중:'+ str(self.__currentFile) + '번째' +' 전체 ' + str(self.__entirePDF) + '장 중 ' + str(self.__currentPDF) + '장 변환')
@@ -225,7 +253,7 @@ class InitWindow(QDialog, stepListener):
 
     def ocrping(self):
         self.__currentOCR = self.__currentOCR + 1
-        self.lblProgress.setText('OCR 검증 중: 전체 ' + str(self.__entireOCR) + '장 중 ' + str(self.__currentOCR) + '장 검증')
+        self.lblOCR.setText('OCR 검증 중: 전체 ' + str(self.__entireOCR) + '장 중 ' + str(self.__currentOCR) + '장 검증')
         QApplication.processEvents()
 
     def gradientping(self):
@@ -235,12 +263,12 @@ class InitWindow(QDialog, stepListener):
 
     def cropping(self):
         self.__currentCrop = self.__currentCrop + 1
-        self.lblProgress.setText('OCR 검증 부분 확인 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentCrop) + '장 확인')
+        self.lblOCR.setText('OCR 검증 부분 확인 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentCrop) + '장 확인')
         QApplication.processEvents()
 
     def improvementping(self):
         self.__currentImprovement = self.__currentImprovement + 1
-        self.lblProgress.setText('이미지 보정 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentImprovement) + '장 보정')
+        self.lblOCR.setText('이미지 보정 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentImprovement) + '장 보정')
         QApplication.processEvents()
 
     def entirePDF(self, num):
@@ -255,14 +283,14 @@ class InitWindow(QDialog, stepListener):
         print("entireOCR")
         self.__currentOCR = 0
         self.__entireOCR = num
-        self.lblProgress.setText('OCR 검증 중: 전체 ' + str(self.__entireOCR) + '장 중 ' + str(self.__currentOCR) + '장 검증')
+        self.lblOCR.setText('OCR 검증 중: 전체 ' + str(self.__entireOCR) + '장 중 ' + str(self.__currentOCR) + '장 검증')
         QApplication.processEvents()
 
     def entireCrop(self, num):
         print("entireCrop")
         self.__entireCrop = 0
         self.__entireCrop = num
-        self.lblProgress.setText('OCR 검증 부분 확인 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentCrop) + '장 확인')
+        self.lblOCR.setText('OCR 검증 부분 확인 중: 전체 ' + str(self.__entireCrop) + '장 중 ' + str(self.__currentCrop) + '장 확인')
         QApplication.processEvents()
 
 
@@ -303,31 +331,75 @@ class InitWindow(QDialog, stepListener):
 
     def endProgram(self):
         # to finish
+        self.__End = RESULT.MakeFolder(self.__coverList, self.__dict_pagecount, self.__dict_originList)
+        self.__End.make_Result()
         self.stackedWidget.setCurrentIndex(7)
 
     def keyword(self):
-        # to inputKeyword
         self.stackedWidget.setCurrentIndex(5)
+        self.btnKeyword.clicked.disconnect(self.sendKeyword)
+        self.__checkdisConnect = True
+
+
 
     def sendKeyword(self):
         inputwords = self.leKeyword.text()
+        self.pbOCR.setValue(self.__i)
         # to ocrProgress
         self.stackedWidget.setCurrentIndex(6)
-
+        QApplication.processEvents()
         self.__Ocr = OCR.CoverCheck(self.__DC.IMG_path, self.__DC.Crop_path, self.__DC.Improvement_path, inputwords)
+        self.__Ocr.setOnstepListener(self)
         crop_list = self.__Ocr.crop(self.__coverList)
         improvement_list = self.__Ocr.improve(crop_list)
         detail_list = self.__Ocr.comparison(improvement_list)
         self.__DC.CROP_clear()
         self.__DC.IMPROVEMENT_clear()
-
         self.detailResult(detail_list)
+        self.stackedWidget.setCurrentIndex(7)
 
     def detailResult(self, detail_list):
         print(detail_list)
         self.__detailResult = DetailResult.MakeDetailFolder(self.__coverList, self.__dict_pagecount, self.__dict_originList, detail_list)
-
         self.__detailResult.makeResult()
+
+    def keywordChanged(self):
+        print("keyReleaseEvent")
+        print(self.leKeyword.text().strip(), len(self.leKeyword.text().strip()))
+        if len(self.leKeyword.text().strip()) == 0:
+            if not self.__checkdisConnect:
+                print("check1", self.__checkdisConnect)
+                self.btnKeyword.clicked.disconnect(self.sendKeyword)
+                self.__checkdisConnect = True
+                self.btnKeyword.stackUnder(self.btnDisable)
+                QApplication.processEvents()
+        else:
+            print("check2", self.__checkdisConnect)
+            if self.__checkdisConnect:
+                self.btnKeyword.clicked.connect(self.sendKeyword)
+                self.__checkdisConnect = False
+                self.btnDisable.stackUnder(self.btnKeyword)
+                QApplication.processEvents()
+
+    # def keyReleaseEvent(self, *args, **kwargs):
+    #     print("keyReleaseEvent")
+    #     if self.stackedWidget.currentIndex() == 5:
+    #         print(self.leKeyword.text().strip(), len(self.leKeyword.text().strip()))
+    #         if len(self.leKeyword.text().strip()) == 0:
+    #             if not self.__checkdisConnect:
+    #                 print("check1", self.__checkdisConnect)
+    #                 self.btnKeyword.clicked.disconnect(self.sendKeyword)
+    #                 self.__checkdisConnect = True
+    #                 self.btnKeyword.stackUnder(self.btnDisable)
+    #                 QApplication.processEvents()
+    #
+    #         else:
+    #             print("check2", self.__checkdisConnect)
+    #             if self.__checkdisConnect:
+    #                 self.btnKeyword.clicked.connect(self.sendKeyword)
+    #                 self.__checkdisConnect = False
+    #                 self.btnDisable.stackUnder(self.btnKeyword)
+    #                 QApplication.processEvents()
 
 
 if __name__ == '__main__':

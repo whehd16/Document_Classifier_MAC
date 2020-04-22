@@ -18,11 +18,20 @@ class CoverCheck(object):
         self.__IMG_path = img_path
         self.__CROP_path = crop_path
         self.__Improvement_path = improvement_path
+        self.__detail_list = []
         self.__input_detail = input_string.split(',')
-        self.__input_detail.sort(key=len, reverse=True)
+        for i in self.__input_detail:
+            if len(i.strip()) != 0:
+                self.__detail_list.append(i.strip())
+        self.__detail_list.sort(key=len, reverse=True)
         self.__Perfect_Cover = {}
         self.__stepListener = stepListener
         self.__IP = image_processing3.IMG_processing(self.__IMG_path, self.__CROP_path, self.__Improvement_path)
+        self.__step = 1
+
+    @property
+    def Step(self):
+        return self.__step
 
     def crop_from_jpg(self, img):
         temp = Image.open(self.__IMG_path + img)
@@ -33,18 +42,18 @@ class CoverCheck(object):
         crop_img.save(self.__CROP_path + img)
 
     def crop(self, lists):
-        #self.__stepListener.upStep()
-        #self.__stepListener.entireCrop(len(lists))
+        self.__stepListener.entireCrop(len(lists))
         for i in lists:
             self.crop_from_jpg(i)
-            # self.__stepListener.cropping()
-
-        #self.__stepListener.upStep()
+            self.__stepListener.cropping()
+        self.__stepListener.upStepOCR()
         crop_list = os.listdir(self.__CROP_path)
         return crop_list
 
     def improve(self, lists):
+        self.__stepListener.entireCrop(len(lists))
         self.__IP.improve(lists)
+        self.__stepListener.upStepOCR()
         improvement_list = os.listdir(self.__Improvement_path)
         return improvement_list
 
@@ -57,42 +66,57 @@ class CoverCheck(object):
 
     def comparison_with_improvement(self, crop):
         temp = pytesseract.image_to_string(Image.open(self.__Improvement_path+crop), lang='kor')
-
         self.log('\n' + crop + '\n' + temp + '\n')
 
-        for i in self.__input_detail:
-            if temp.find(i) == -1:
+        f = open("validation.txt", 'w')
+        f.write(temp)
+        f = open("validation.txt", 'r')
+        lines = f.readlines()
+        for li in lines:
+            line = li.replace(" ", "")
+            index = line.find("제목")
+            if line.find("제목") == -1:
                 continue
             else:
-                temp_list = []
+                sentence = line[index + 2:]
+                for i in self.__detail_list:
+                    word = i.replace(" ", "")
+                    if sentence.find(word) == -1:
+                        continue
+                    else:
+                        temp_list = []
 
-                if self.__Perfect_Cover.get(i) is None:
-                    print("없음")
-                    temp_list.append(crop)
-                    self.__Perfect_Cover[i] = temp_list
-                else:
-                    temp_list = self.__Perfect_Cover.get(i)
-                    temp_list.append(crop)
-                    self.__Perfect_Cover[i] = temp_list
+                        if self.__Perfect_Cover.get(i) is None:
+                            temp_list.append(crop)
+                            self.__Perfect_Cover[i] = temp_list
+                        else:
+                            temp_list = self.__Perfect_Cover.get(i)
+                            temp_list.append(crop)
+                            self.__Perfect_Cover[i] = temp_list
+                        break
                 break
+
+        f.close()
+        os.remove("validation.txt")
 
 
     def comparison(self, lists):
 
         self.__Perfect_Cover.clear()
         timer = time.time()
-        #self.__stepListener.entireOCR(len(lists))
+        self.__stepListener.entireOCR(len(lists))
 
         for i in lists:
             self.comparison_with_improvement(i)
-            #self.__stepListener.ocrping()
+            self.__stepListener.ocrping()
 
-        #self.__stepListener.upStep()
+        self.__stepListener.upStepOCR()
         print(time.time() - timer)
         return self.__Perfect_Cover
 
     def setOnstepListener(self, Listner):
         self.__stepListener = Listner
+        self.__IP.setOnstepListener(Listner)
 
 
 if __name__ == "__main__":
