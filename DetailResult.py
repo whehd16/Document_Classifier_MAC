@@ -153,8 +153,9 @@ class MakeDetailFolder(object):
             contentList = []
 
             pdfnum, filenum = map(int, self.__coverList[cover][:-4].split('-'))
+            print(pdfnum, filenum)
             originPdfCount = self.__filePage.get(str(pdfnum))
-
+            print(self.__filePage)
             for content in range(filenum + 1, originPdfCount + 1):
                 contentFile = str(pdfnum) + "-" + str(content) + ".jpg"
 
