@@ -13,18 +13,16 @@ No module name cv2
 -> pip install opencv-python
 
 pip install torch
-Pip install torchvision
-Pip install pyterssseract
+pip install torchvision
+pip install pyterssseract
 
-x Sudo apt-get install -y poppler-utils?
+brew install popper
 
-Brew install popper
+and edit for Mac popper
 
-And edit for Mac popper
+poppler and pytesseract 라이브러리로 바꿔야함
 
-Poppler and pytesseract 라이브러리로 바꿔야함
-
-Brew install tesseract
+brew install tesseract
 
 export TESSDATA_PREFIX=/Users/donghee/Library/Homebrew/share/tessdata
 
