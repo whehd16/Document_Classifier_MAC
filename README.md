@@ -6,7 +6,8 @@
 
 1. Create Folder CROP, IMG, Improvement, PDF, RePDF, Result
 2. Input PDF file(s) which you want to classify in PDF folder
-3. Run
+3. Delete .DS files
+4. Run
    프로젝트 import 관련
 
 No module name cv2
